@@ -41,7 +41,6 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -50,7 +49,6 @@ import androidx.annotation.StyleRes;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.app.animation.Interpolators;
-import com.android.systemui.BatteryBoltChargeView;
 import com.android.settingslib.graph.CircleBatteryDrawable;
 import com.android.systemui.DualToneHandler;
 import com.android.systemui.battery.unified.BatteryColors;
@@ -105,8 +103,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
 
     private BatteryEstimateFetcher mBatteryEstimateFetcher;
 
-    protected BatteryBoltChargeView mBatteryBoltChargeView;
-
     // for Flags.newStatusBarIcons. The unified battery icon can show percent inside
     @Nullable private BatteryLayersDrawable mUnifiedBattery;
     private BatteryColors mUnifiedBatteryColors = BatteryColors.LIGHT_THEME_COLORS;
@@ -159,13 +155,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
                     getResources().getDimensionPixelOffset(R.dimen.battery_margin_bottom));
             addView(mBatteryIconView, mlp);
         }
-
-        mBatteryBoltChargeView = new BatteryBoltChargeView(context, null);
-        final MarginLayoutParams mlp2 = new MarginLayoutParams(
-                getResources().getDimensionPixelSize(R.dimen.status_bar_battery_bolt_icon_width),
-                getResources().getDimensionPixelSize(R.dimen.status_bar_battery_bolt_icon_height));
-        mlp2.setMargins(0, 0, 0, 0);
-        addView(mBatteryBoltChargeView, mlp2);
 
         updateShowPercent();
         mDualToneHandler = new DualToneHandler(context);
@@ -267,8 +256,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         mAccessorizedDrawable.setBatteryLevel(level);
         mCircleDrawable.setBatteryLevel(level);
         updatePercentText();
-        updateBoltChargeView();
-        updateBatteryMeterVisibility();
 
         if (newStatusBarIcons()) {
             Drawable attr = mUnifiedBatteryState.getAttribution();
@@ -651,23 +638,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
 
         updateShowPercent();
     }
-    public void updateBoltChargeView() {
-        if (mPluggedIn) {
-            updateShowPercent();
-            mBatteryBoltChargeView.setLevel(mLevel);
-            mBatteryBoltChargeView.setVisibility(View.VISIBLE);
-            return;
-        }
-        mBatteryBoltChargeView.setVisibility(View.GONE);
-    }
-
-    public void updateBatteryMeterVisibility() {
-        if (mPluggedIn) {
-            mBatteryIconView.setVisibility(View.GONE);
-        } else {
-            mBatteryIconView.setVisibility(View.VISIBLE);
-        }
-    }
 
     void scaleBatteryMeterViews() {
         if (!newStatusBarIcons()) {
@@ -745,8 +715,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         mAccessorizedDrawable.setDisplayShield(displayShield);
         mBatteryIconView.setLayoutParams(scaledLayoutParams);
 
-        mBatteryBoltChargeView.updateViews();
-        mBatteryBoltChargeView.setLayoutParams(mBatteryBoltChargeView.getLayoutParams());
         mBatteryIconView.invalidateDrawable(mAccessorizedDrawable);
     }
 
@@ -770,6 +738,8 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         return Settings.System.getIntForUser(getContext().getContentResolver(),
                 Settings.System.STATUS_BAR_BATTERY_STYLE, BATTERY_STYLE_PORTRAIT,
                 UserHandle.USER_CURRENT);
+
+        mBatteryIconView.invalidateDrawable(mDrawable);
     }
 
     @Override
@@ -808,7 +778,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
 
         updateColors(nonAdaptedForegroundColor, nonAdaptedBackgroundColor,
                 nonAdaptedSingleToneColor);
-        mBatteryBoltChargeView.setIconTint(tint);
     }
 
     public void setStaticColor(boolean isStaticColor) {
@@ -834,7 +803,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         if (mUnknownStateDrawable != null) {
             mUnknownStateDrawable.setTint(singleToneColor);
         }
-        mBatteryBoltChargeView.setIconTint(foregroundColor);
     }
 
     /** For newStatusBarIcons(), we use a BatteryColors object to declare the theme */
