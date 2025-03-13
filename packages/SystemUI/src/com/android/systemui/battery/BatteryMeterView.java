@@ -737,8 +737,6 @@ public class BatteryMeterView extends LinearLayout implements DarkReceiver {
         return Settings.System.getIntForUser(getContext().getContentResolver(),
                 Settings.System.STATUS_BAR_BATTERY_STYLE, BATTERY_STYLE_PORTRAIT,
                 UserHandle.USER_CURRENT);
-
-        mBatteryIconView.invalidateDrawable(mDrawable);
     }
 
     @Override
